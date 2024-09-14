@@ -245,3 +245,17 @@ body {
 .sb-markdown-toolbar:hover {
   opacity: 1;
 }
+
+@media only screen and (max-width: 480px) {
+  #sb-top {
+    height: auto;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    transition: top 1s;
+  }
+
+  #sb-top .main .inner .wrapper {
+    flex-direction: column-reverse;
+  }
+}

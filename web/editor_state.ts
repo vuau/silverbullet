@@ -58,6 +58,7 @@ export function createEditorState(
   readOnly: boolean,
 ): EditorState {
   let touchCount = 0;
+  let lastScrollTop = 0;
 
   // Ugly: keep the keyhandler compartment in the client, to be replaced later once more commands are loaded
   client.keyHandlerCompartment = new Compartment();
@@ -160,6 +161,39 @@ export function createEditorState(
       ]),
       keyBindings,
       EditorView.domEventHandlers({
+        scroll: (event: Event, view: EditorView) => {
+          if (!client.ui.viewState.isMobile) {
+            return;
+          }
+
+          const sbTop = document.getElementById('sb-top');
+          if (!sbTop) {
+            return;
+          }
+
+          const currentScrollTop = (event.target as HTMLElement).scrollTop;
+          const sbTopHeight = sbTop?.offsetHeight ?? 0;
+          const scrollHeight = (event.target as HTMLElement).scrollHeight;
+          const clientHeight = (event.target as HTMLElement).clientHeight;
+
+          // Avoid bounce effect by making sure the scroll is within valid boundaries
+          if (currentScrollTop <= 0 || currentScrollTop + clientHeight >= scrollHeight) {
+            // We're at the top or bottom, likely a bounce effect, so exit early
+            return;
+          }
+
+          view.contentDOM.style.paddingTop = sbTopHeight + 20 + 'px';
+
+          if (currentScrollTop > lastScrollTop) {
+            // Scrolling down
+            sbTop.style.top = '-' + sbTop.offsetHeight + 'px';
+          } else {
+            // Scrolling up
+            sbTop.style.top = '0';
+          }
+
+          lastScrollTop = currentScrollTop;
+        },
         // This may result in duplicated touch events on mobile devices
         touchmove: () => {
           touchCount++;
